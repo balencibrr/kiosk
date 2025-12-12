@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardMarket Pro</title>
+    <style>
+        :root {
+            --primary-dark: #0a0e17;
+            --secondary-dark: #121826;
+            --card-dark: #1a1f2e;
+            --accent: #2563eb;
+            --accent-secondary: #3b82f6;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #2d3748;
+            --blur-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: var(--primary-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: clamp(1rem, 3vw, 2rem);
+        }
+
+        header {
+            margin-bottom: 3rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .header-content {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.025em;
+        }
+
+        .warning-banner {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(245, 158, 11, 0.1));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .warning-banner strong {
+            color: var(--danger);
+        }
+
+        .nav-container {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 0.875rem 1.5rem;
+            background: var(--secondary-dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+
+        .nav-btn:hover {
+            background: var(--card-dark);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            border-color: transparent;
+        }
+
+        .cart-count {
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+            font-weight: 600;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 480px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .cards-grid {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            }
+        }
+
+        .card-item {
+            background: var(--card-dark);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-item:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card-item:hover::before {
+            opacity: 1;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .bank-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+
+        .card-type {
+            padding: 0.375rem 0.875rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .visa { background: linear-gradient(135deg, #1a237e, #283593); color: white; }
+        .mastercard { background: linear-gradient(135deg, #ff6f00, #ff9100); color: white; }
+        .amex { background: linear-gradient(135deg, #004d40, #00796b); color: white; }
+        .discover { background: linear-gradient(135deg, #ff6f00, #ffab00); color: white; }
+
+        .card-number {
+            font-family: 'Courier New', monospace;
+            font-size: 1.25rem;
+            letter-spacing: 1px;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: var(--secondary-dark);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .blurred {
+            color: transparent;
+            text-shadow: 0 0 8px var(--blur-color);
+            user-select: none;
+        }
+
+        .visible {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .card-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        @media (max-width: 480px) {
+            .card-details {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .detail-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .add-to-cart {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .add-to-cart:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .add-to-cart:active {
+            transform: translateY(0);
+        }
+
+        .add-to-cart.added {
+            background: var(--secondary-dark);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        .load-more {
+            display: block;
+            margin: 3rem auto;
+            padding: 1rem 2.5rem;
+            background: var(--secondary-dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .load-more:hover {
+            background: var(--card-dark);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-dark);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .close-modal:hover {
+            background: var(--secondary-dark);
+            color: var(--text-primary);
+        }
+
+        .modal-header {
+            padding: 2rem 2rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .modal-body {
+            padding: 1.5rem 2rem 2rem;
+        }
+
+        .saved-card-option {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .saved-card-option:hover {
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+
+        .saved-card-option.selected {
+            border-color: var(--accent);
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--secondary-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--secondary-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: var(--card-dark);
+            border-color: var(--accent);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 1.5rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loader {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .success-icon {
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(135deg, var(--success), #34d399);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            color: white;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--secondary-dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+        }
+
+        @media (max-width: 480px) {
+            .cart-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+            }
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .cart-item-details {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .btn-remove {
+            padding: 0.5rem 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            color: var(--danger);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        @media (max-width: 480px) {
+            .btn-remove {
+                align-self: flex-end;
+            }
+        }
+
+        .btn-remove:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--danger);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .owned-cards-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .owned-card-item {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            position: relative;
+        }
+
+        .owned-card-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--accent), var(--accent-secondary));
+            border-radius: 4px 0 0 4px;
+        }
+
+        .owned-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        @media (max-width: 480px) {
+            .owned-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+
+        .owned-card-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+
+        .owned-card-balance {
+            color: var(--success);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .mobile-warning {
+            display: none;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--warning);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-warning {
+                display: block;
+            }
+        }
+
+        .status-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+            z-index: 9999;
+            display: none;
+        }
+
+        .status-bar.active {
+            display: block;
+            animation: progress 2s ease-in-out infinite;
+        }
+
+        @keyframes progress {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+    </style>
+</head>
+<body>
+    <div class="status-bar" id="statusBar"></div>
+    
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>CARDMARKET PRO</h1>
+                <div class="nav-container">
+                    <button class="nav-btn active" onclick="showPage('marketplace')">Marketplace</button>
+                    <button class="nav-btn" onclick="showPage('cart')">Cart <span class="cart-count" id="cartCounter">0</span></button>
+                    <button class="nav-btn" onclick="showPage('owned')">Owned Cards</button>
+                </div>
+            </div>
+            
+            <div class="warning-banner">
+                <strong>PRODUCTION USE ONLY</strong> • All data is randomly generated for demonstration purposes
+            </div>
+            
+            <div class="mobile-warning">
+                Mobile-optimized interface for production use
+            </div>
+        </header>
+
+        <div id="marketplacePage" class="page active">
+            <div id="cardsGrid" class="cards-grid"></div>
+            <button id="loadMoreBtn" class="load-more" onclick="loadMoreCards()">Load More Cards</button>
+        </div>
+
+        <div id="cartPage" class="page">
+            <h2 class="modal-title" style="margin-bottom: 2rem;">Shopping Cart</h2>
+            <div id="cartItems"></div>
+            <button class="btn-primary" onclick="showPurchaseModal()" id="purchaseBtn" style="margin-top: 2rem;">Complete Purchase</button>
+        </div>
+
+        <div id="ownedPage" class="page">
+            <h2 class="modal-title" style="margin-bottom: 2rem;">Purchased Cards</h2>
+            <div id="ownedCardsList" class="owned-cards-list"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="purchaseModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <div class="modal-header">
+                <h2 class="modal-title">Complete Purchase</h2>
+            </div>
+            <div class="modal-body">
+                <div id="useSavedCard">
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem;">Select a saved payment method:</p>
+                    <div id="savedCardOptions"></div>
+                    <button class="btn-secondary" onclick="showNewCardForm()" style="margin-top: 1rem;">Enter New Card Details</button>
+                </div>
+                
+                <div id="newCardForm" style="display: none;">
+                    <div class="form-group">
+                        <label>Card Number</label>
+                        <input type="text" placeholder="•••• •••• •••• ••••" maxlength="19">
+                    </div>
+                    <div class="form-group">
+                        <label>Cardholder Name</label>
+                        <input type="text" placeholder="Full Name">
+                    </div>
+                    <div class="form-group">
+                        <label>Expiry Date</label>
+                        <input type="text" placeholder="MM/YY">
+                    </div>
+                    <div class="form-group">
+                        <label>Security Code</label>
+                        <input type="text" placeholder="•••" maxlength="3">
+                    </div>
+                    <button class="btn-secondary" onclick="useNewCard()">Use This Card</button>
+                </div>
+                
+                <div class="loader" id="transactionLoader" style="display: none;">
+                    <div class="spinner"></div>
+                    <p style="color: var(--text-secondary); margin-top: 1rem;">Processing transaction securely...</p>
+                </div>
+                
+                <div class="success-message" id="transactionComplete" style="display: none;">
+                    <div class="success-icon">✓</div>
+                    <h3 style="color: var(--success); margin-bottom: 0.5rem;">Transaction Complete</h3>
+                    <p style="color: var(--text-secondary);">Cards have been added to your collection</p>
+                </div>
+                
+                <button class="btn-primary" onclick="processTransaction()" id="completePurchaseBtn">Complete Purchase</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const banks = ["Chase Bank", "Bank of America", "Wells Fargo", "Citibank", "Capital One", "HSBC", "Barclays", "Santander", "TD Bank", "PNC Bank"];
+        const cardTypes = ["Visa", "Mastercard", "American Express", "Discover"];
+        const firstNames = ["James", "Mary", "Robert", "Patricia", "John", "Jennifer", "Michael", "Linda", "David", "Elizabeth"];
+        const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez"];
+        const cardClasses = ["Platinum", "Signature", "Infinite", "World", "Black", "Gold", "Titanium", "Preferred"];
+
+        let allCards = [];
+        let displayedCards = 6;
+        let cart = JSON.parse(localStorage.getItem('propCart')) || [];
+        let ownedCards = JSON.parse(localStorage.getItem('propOwnedCards')) || [];
+        let currentPage = 'marketplace';
+        let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        function initApp() {
+            updateCartCounter();
+            generateInitialCards();
+            showPage('marketplace');
+            updatePurchaseButton();
+        }
+
+        function generateRandomCard() {
+            const cardType = cardTypes[Math.floor(Math.random() * cardTypes.length)];
+            const bank = banks[Math.floor(Math.random() * banks.length)];
+            const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+            const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+            const cardClass = cardClasses[Math.floor(Math.random() * cardClasses.length)];
+            
+            let cardNumber = '';
+            for (let i = 0; i < 16; i++) {
+                cardNumber += Math.floor(Math.random() * 10);
+                if ((i + 1) % 4 === 0 && i !== 15) cardNumber += ' ';
+            }
+            
+            const lastFour = cardNumber.slice(-4);
+            const cvv = Math.floor(100 + Math.random() * 900).toString();
+            const balance = Math.floor(Math.random() * 50000) + 1000;
+            const accountType = Math.random() > 0.5 ? "Checking" : "Savings";
+            
+            return {
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                cardType,
+                bank,
+                cardholder: `${firstName} ${lastName}`,
+                cardClass,
+                cardNumber,
+                lastFour,
+                cvv,
+                balance: `$${balance.toLocaleString()}`,
+                accountType,
+                addedToCart: false
+            };
+        }
+
+        function generateInitialCards() {
+            allCards = [];
+            const count = isMobile ? 8 : 12;
+            for (let i = 0; i < count; i++) {
+                allCards.push(generateRandomCard());
+            }
+            displayCards();
+        }
+
+        function displayCards() {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '';
+            
+            const cardsToShow = allCards.slice(0, displayedCards);
+            
+            cardsToShow.forEach(card => {
+                const isInCart = cart.some(item => item.id === card.id);
+                const blurredName = `${card.cardholder.split(' ')[0].slice(0, -2)}•• ${card.cardholder.split(' ')[1].slice(0, -2)}••`;
+                
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card-item';
+                cardElement.innerHTML = `
+                    <div class="card-header">
+                        <div class="bank-name">${card.bank}</div>
+                        <div class="card-type ${card.cardType.toLowerCase()}">${card.cardType}</div>
+                    </div>
+                    
+                    <div class="card-number">
+                        <span class="blurred">${card.cardNumber.slice(0, -4).replace(/\d/g, '•')}</span>
+                        <span class="visible">${card.lastFour}</span>
+                    </div>
+                    
+                    <div class="card-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Cardholder</span>
+                            <span class="detail-value blurred">${blurredName}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Security Code</span>
+                            <span class="detail-value blurred">••${card.cvv[2]}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Balance</span>
+                            <span class="detail-value">${card.balance}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Account Type</span>
+                            <span class="detail-value">${card.accountType}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Card Class</span>
+                            <span class="detail-value">${card.cardClass}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Bank</span>
+                            <span class="detail-value">${card.bank}</span>
+                        </div>
+                    </div>
+                    
+                    <button class="add-to-cart ${isInCart ? 'added' : ''}" 
+                            onclick="addToCart(${card.id})" 
+                            ${isInCart ? 'disabled' : ''}>
+                        ${isInCart ? 'Added to Cart' : '+ Add to Cart'}
+                    </button>
+                `;
+                
+                grid.appendChild(cardElement);
+            });
+        }
+
+        function addToCart(cardId) {
+            const card = allCards.find(c => c.id === cardId);
+            if (!card || cart.some(item => item.id === cardId)) return;
+            
+            cart.push(card);
+            localStorage.setItem('propCart', JSON.stringify(cart));
+            
+            updateCartCounter();
+            updatePurchaseButton();
+            displayCards();
+            
+            if (currentPage === 'cart') {
+                displayCartItems();
+            }
+            
+            const buttons = document.querySelectorAll(`button[onclick="addToCart(${cardId})"]`);
+            buttons.forEach(btn => {
+                btn.textContent = 'Added to Cart';
+                btn.classList.add('added');
+                btn.disabled = true;
+            });
+        }
+
+        function removeFromCart(cardId) {
+            cart = cart.filter(item => item.id !== cardId);
+            localStorage.setItem('propCart', JSON.stringify(cart));
+            
+            updateCartCounter();
+            updatePurchaseButton();
+            displayCartItems();
+            displayCards();
+        }
+
+        function updateCartCounter() {
+            document.getElementById('cartCounter').textContent = cart.length;
+        }
+
+        function updatePurchaseButton() {
+            const purchaseBtn = document.getElementById('purchaseBtn');
+            if (purchaseBtn) {
+                purchaseBtn.disabled = cart.length === 0;
+                purchaseBtn.textContent = cart.length === 0 ? 'Cart is Empty' : `Purchase (${cart.length} items)`;
+            }
+        }
+
+        function displayCartItems() {
+            const container = document.getElementById('cartItems');
+            
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🛒</div>
+                        <p>Your cart is empty</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">Add cards from the marketplace</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            cart.forEach(card => {
+                const item = document.createElement('div');
+                item.className = 'cart-item';
+                item.innerHTML = `
+                    <div class="cart-item-info">
+                        <div class="cart-item-title">${card.bank} • ${card.cardType} ${card.cardClass}</div>
+                        <div class="cart-item-details">Ending in ${card.lastFour} • ${card.cardholder} • Balance: ${card.balance}</div>
+                    </div>
+                    <button class="btn-remove" onclick="removeFromCart(${card.id})">Remove</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function loadMoreCards() {
+            displayedCards += isMobile ? 4 : 6;
+            if (displayedCards > allCards.length) {
+                for (let i = 0; i < (isMobile ? 8 : 12); i++) {
+                    allCards.push(generateRandomCard());
+                }
+            }
+            displayCards();
+        }
+
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(page + 'Page').classList.add('active');
+            document.querySelector(`button[onclick="showPage('${page}')"]`).classList.add('active');
+            
+            currentPage = page;
+            
+            if (page === 'cart') {
+                displayCartItems();
+            } else if (page === 'owned') {
+                displayOwnedCards();
+            }
+        }
+
+        function displayOwnedCards() {
+            const container = document.getElementById('ownedCardsList');
+            
+            if (ownedCards.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💳</div>
+                        <p>No purchased cards</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">Complete a purchase to see cards here</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            ownedCards.forEach(card => {
+                const item = document.createElement('div');
+                item.className = 'owned-card-item';
+                item.innerHTML = `
+                    <div class="owned-card-header">
+                        <div class="owned-card-title">${card.bank} • ${card.cardType} ${card.cardClass}</div>
+                        <div class="owned-card-balance">${card.balance}</div>
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                        •••• •••• •••• ${card.lastFour} • ${card.cardholder} • ${card.accountType}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function showPurchaseModal() {
+            if (cart.length === 0) return;
+            
+            const modal = document.getElementById('purchaseModal');
+            modal.classList.add('active');
+            
+            document.getElementById('useSavedCard').style.display = 'block';
+            document.getElementById('newCardForm').style.display = 'none';
+            document.getElementById('transactionLoader').style.display = 'none';
+            document.getElementById('transactionComplete').style.display = 'none';
+            document.getElementById('completePurchaseBtn').style.display = 'block';
+            
+            displaySavedCardOptions();
+        }
+
+        function closeModal() {
+            document.getElementById('purchaseModal').classList.remove('active');
+        }
+
+        function displaySavedCardOptions() {
+            const container = document.getElementById('savedCardOptions');
+            
+            if (ownedCards.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No saved payment methods</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            ownedCards.slice(0, 3).forEach(card => {
+                const blurredName = `${card.cardholder.split(' ')[0].slice(0, -2)}•• ${card.cardholder.split(' ')[1].slice(0, -2)}••`;
+                
+                const option = document.createElement('div');
+                option.className = 'saved-card-option';
+                option.innerHTML = `
+                    <div style="font-weight: 600; margin-bottom: 0.25rem;">${card.cardType} ${card.cardClass}</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">${blurredName} • •••• ${card.lastFour}</div>
+                `;
+                
+                option.onclick = function() {
+                    document.querySelectorAll('.saved-card-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                };
+                
+                container.appendChild(option);
+            });
+        }
+
+        function showNewCardForm() {
+            document.getElementById('useSavedCard').style.display = 'none';
+            document.getElementById('newCardForm').style.display = 'block';
+        }
+
+        function useNewCard() {
+            document.getElementById('newCardForm').style.display = 'none';
+            document.getElementById('completePurchaseBtn').style.display = 'block';
+        }
+
+        function showStatusBar() {
+            const statusBar = document.getElementById('statusBar');
+            statusBar.classList.add('active');
+            setTimeout(() => statusBar.classList.remove('active'), 2000);
+        }
+
+        function processTransaction() {
+            document.getElementById('completePurchaseBtn').style.display = 'none';
+            document.getElementById('transactionLoader').style.display = 'block';
+            showStatusBar();
+            
+            setTimeout(() => {
+                cart.forEach(card => {
+                    if (!ownedCards.some(owned => owned.id === card.id)) {
+                        ownedCards.push(card);
+                    }
+                });
+                
+                localStorage.setItem('propOwnedCards', JSON.stringify(ownedCards));
+                cart = [];
+                localStorage.setItem('propCart', JSON.stringify(cart));
+                
+                updateCartCounter();
+                updatePurchaseButton();
+                
+                document.getElementById('transactionLoader').style.display = 'none';
+                document.getElementById('transactionComplete').style.display = 'block';
+                
+                setTimeout(() => {
+                    closeModal();
+                    showPage('owned');
+                }, 2000);
+            }, 2000);
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+        
+        document.addEventListener('touchstart', function() {}, {passive: true});
+        
+        window.addEventListener('beforeunload', function() {
+            if (cart.length > 0) {
+                localStorage.setItem('propCart', JSON.stringify(cart));
+            }
+        });
+
+        if (isMobile) {
+            document.querySelectorAll('.card-number').forEach(el => {
+                el.style.fontSize = '1.1rem';
+                el.style.padding = '0.875rem';
+            });
+            
+            document.querySelectorAll('.card-details').forEach(el => {
+                el.style.gap = '0.625rem';
+            });
+        }
+    </script>
+</body>
+</html>
