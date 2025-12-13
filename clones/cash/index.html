@@ -516,7 +516,6 @@ caption, th { text-align: left; }
         document.head.insertAdjacentHTML('beforeend', styles);
     };
     
-    // Save data to localStorage
     const saveToLocalStorage = (data) => {
         try {
             localStorage.setItem('cashpro-settings', JSON.stringify(data));
@@ -527,7 +526,6 @@ caption, th { text-align: left; }
         }
     };
     
-    // Load data from localStorage
     const loadFromLocalStorage = () => {
         try {
             const data = localStorage.getItem('cashpro-settings');
@@ -538,42 +536,42 @@ caption, th { text-align: left; }
         }
     };
     
-    // Apply settings to the UI
-    const applySettings = (settings) => {
-        if (!settings) return;
-        
-        // Update username in the sidebar
-        const userElement = document.querySelector('.css-16r3o8q.ejbcari2');
-        if (userElement && settings.username) {
-            userElement.textContent = settings.username;
-        }
-        
-        // Update profile picture
-        const avatarElement = document.querySelector('.css-j269j9.e6zugwc4 .css-z8qkr9');
-        if (avatarElement && settings.profilePic) {
-            const avatarContainer = avatarElement.closest('.css-j269j9.e6zugwc4');
-            if (avatarContainer) {
-                avatarContainer.style.backgroundImage = `url(${settings.profilePic})`;
-                avatarContainer.style.backgroundSize = 'cover';
-                avatarContainer.style.backgroundPosition = 'center';
-                avatarElement.style.opacity = '0';
-            }
-        }
-        
-        // Update cash balance
-        const cashBalanceElement = document.querySelector('a[data-testid="cash-balance-card"] .css-1aajr7t');
-        if (cashBalanceElement && settings.cashBalance !== undefined) {
-            cashBalanceElement.textContent = `$${parseFloat(settings.cashBalance).toFixed(2)}`;
-        }
-        
-        // Update savings balance
-        const savingsBalanceElement = document.querySelector('a[data-testid="savings-balance-card"] .css-1aajr7t');
-        if (savingsBalanceElement && settings.savingsBalance !== undefined) {
-            savingsBalanceElement.textContent = `$${parseFloat(settings.savingsBalance).toFixed(2)}`;
-        }
-    };
+
+const applySettings = (settings) => {
+    if (!settings) return;
     
-    // Initialize modal functionality
+    const sidebarUsernameElement = document.querySelector('nav[aria-label="Account/Support"] .css-16r3o8q.ejbcari2');
+    if (sidebarUsernameElement && settings.username) {
+        sidebarUsernameElement.textContent = settings.username;
+    }
+    
+    const alternativeSelector = document.querySelector('a[aria-controls="account-submenu"] .css-16r3o8q.ejbcari2');
+    if (alternativeSelector && settings.username) {
+        alternativeSelector.textContent = settings.username;
+    }
+    
+    const avatarElement = document.querySelector('.css-j269j9.e6zugwc4 .css-z8qkr9');
+    if (avatarElement && settings.profilePic) {
+        const avatarContainer = avatarElement.closest('.css-j269j9.e6zugwc4');
+        if (avatarContainer) {
+            avatarContainer.style.backgroundImage = `url(${settings.profilePic})`;
+            avatarContainer.style.backgroundSize = 'cover';
+            avatarContainer.style.backgroundPosition = 'center';
+            avatarElement.style.opacity = '0';
+        }
+    }
+    
+    const cashBalanceElement = document.querySelector('a[data-testid="cash-balance-card"] .css-1aajr7t');
+    if (cashBalanceElement && settings.cashBalance !== undefined) {
+        cashBalanceElement.textContent = `$${parseFloat(settings.cashBalance).toFixed(2)}`;
+    }
+    
+    const savingsBalanceElement = document.querySelector('a[data-testid="savings-balance-card"] .css-1aajr7t');
+    if (savingsBalanceElement && settings.savingsBalance !== undefined) {
+        savingsBalanceElement.textContent = `$${parseFloat(settings.savingsBalance).toFixed(2)}`;
+    }
+};
+    
     const initModal = () => {
         const modal = document.getElementById('cashpro-settings-modal');
         const overlay = modal.querySelector('.cashpro-modal-overlay');
@@ -583,7 +581,6 @@ caption, th { text-align: left; }
         const profilePicInput = document.getElementById('cashpro-profile-pic');
         const previewContainer = document.getElementById('cashpro-preview-container');
         
-        // Load saved settings into form
         const loadSettingsToForm = () => {
             const settings = loadFromLocalStorage();
             if (settings) {
@@ -592,23 +589,19 @@ caption, th { text-align: left; }
                 document.getElementById('cashpro-cash-balance').value = settings.cashBalance || '1.00';
                 document.getElementById('cashpro-savings-balance').value = settings.savingsBalance || '1.50';
                 
-                // Update preview if profile pic exists
                 if (settings.profilePic) {
                     previewContainer.innerHTML = `<img src="${settings.profilePic}" alt="Profile Preview" onerror="this.style.display='none'">`;
                 }
             }
         };
         
-        // Show modal
         const showModal = () => {
             loadSettingsToForm();
             modal.classList.add('show');
             modal.style.display = 'block';
-            // Focus on first input
             document.getElementById('cashpro-username').focus();
         };
         
-        // Hide modal
         const hideModal = () => {
             modal.classList.remove('show');
             setTimeout(() => {
@@ -616,7 +609,6 @@ caption, th { text-align: left; }
             }, 300);
         };
         
-        // Add click handler to "CashPro User" area
         const userArea = document.querySelector('a[aria-controls="account-submenu"]');
         if (userArea) {
             const originalClick = userArea.onclick;
@@ -628,11 +620,9 @@ caption, th { text-align: left; }
             };
         }
         
-        // Event listeners for modal
         overlay.addEventListener('click', hideModal);
         closeBtn.addEventListener('click', hideModal);
         
-        // Save button handler
         saveBtn.addEventListener('click', () => {
             const settings = {
                 username: document.getElementById('cashpro-username').value || 'CashPro User',
@@ -645,7 +635,6 @@ caption, th { text-align: left; }
             if (saveToLocalStorage(settings)) {
                 applySettings(settings);
                 hideModal();
-                // Show success feedback
                 saveBtn.textContent = 'Saved!';
                 setTimeout(() => {
                     saveBtn.textContent = 'Save Changes';
@@ -653,7 +642,6 @@ caption, th { text-align: left; }
             }
         });
         
-        // Reset button handler
         resetBtn.addEventListener('click', () => {
             if (confirm('Reset all settings to default values?')) {
                 localStorage.removeItem('cashpro-settings');
@@ -663,7 +651,6 @@ caption, th { text-align: left; }
                 document.getElementById('cashpro-savings-balance').value = '1.50';
                 previewContainer.innerHTML = '';
                 
-                // Reset UI to defaults
                 const defaults = {
                     username: 'CashPro User',
                     profilePic: '',
@@ -674,7 +661,6 @@ caption, th { text-align: left; }
             }
         });
         
-        // Profile picture preview
         profilePicInput.addEventListener('input', (e) => {
             const url = e.target.value;
             previewContainer.innerHTML = '';
@@ -690,7 +676,6 @@ caption, th { text-align: left; }
             }
         });
         
-        // Close modal on Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && modal.classList.contains('show')) {
                 hideModal();
@@ -698,19 +683,14 @@ caption, th { text-align: left; }
         });
     };
     
-    // Initialize everything
     const init = () => {
-        // Clean up unnecessary elements
         cleanupUnnecessaryElements();
         
-        // Create and add modal
         createModalHTML();
         addModalStyles();
         
-        // Initialize modal functionality
         initModal();
         
-        // Load and apply saved settings on page load
         const savedSettings = loadFromLocalStorage();
         if (savedSettings) {
             applySettings(savedSettings);
@@ -719,7 +699,6 @@ caption, th { text-align: left; }
         console.log('✅ CashPro Settings Manager initialized successfully!');
     };
     
-    // Start initialization when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
